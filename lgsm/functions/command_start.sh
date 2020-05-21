@@ -72,6 +72,13 @@ fn_start_tmux(){
 	# Create last start lock file
 	date +%s > "${lockdir}/${selfname}-laststart.lock"
 
+	if [ ! -f "${lockdir}/${selfname}-lastbpwipe.lock" ]; then
+		date > "${lockdir}/${selfname}-lastbpwipe.lock"
+	fi
+	if [ ! -f "${lockdir}/${selfname}-lastmapwipe.lock" ]; then
+		date > "${lockdir}/${selfname}-lastmapwipe.lock"
+	fi
+
 	# Get tmux version.
 	tmuxversion=$(tmux -V | sed "s/tmux //" | sed -n '1 p')
 	# Tmux compiled from source will return "master", therefore ignore it.

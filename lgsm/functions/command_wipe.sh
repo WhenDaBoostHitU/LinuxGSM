@@ -20,8 +20,10 @@ fn_wipe_server_process(){
 		exitbypass=1
 		command_stop.sh
 		fn_wipe_server_remove_files
-		exitbypass=1
-		command_start.sh
+		if [ "${autowipe}" != "1" ]; then
+			exitbypass=1
+			command_start.sh
+		fi
 	else
 		fn_wipe_server_remove_files
 	fi
@@ -51,6 +53,10 @@ fn_wipe_server_remove_files(){
 			fn_sleep_time
 			fn_script_log "${currentaction}"
 			find "${serveridentitydir:?}" -type f -name "proceduralmap.*.map" -delete
+			# Remove map last map wipe lock
+			if [ -f "${lockdir}/${selfname}-lastmapwipe.lock" ]; then
+				rm -f "${lockdir:?}/${selfname}-lastmapwipe.lock"
+			fi
 			fn_wipe_exit_code
 			fn_sleep_time
 		else
@@ -150,6 +156,10 @@ fn_wipe_server_remove_files(){
 				fn_sleep_time
 				fn_script_log "${currentaction}"
 				find "${serveridentitydir:?}" -type f -name "player.blueprints.*.db" -delete
+				# Remove lock file
+				if [ -f "${lockdir}/${selfname}-lastbpwipe.lock" ]; then
+					rm -f "${lockdir:?}/${selfname}-lastbpwipe.lock"
+				fi
 				fn_wipe_exit_code
 				fn_sleep_time
 			else
@@ -184,8 +194,11 @@ fn_wipe_server_remove_files(){
 if [ "${shortname}" == "rust" ]; then
 	if [ -d "${serveridentitydir}/storage" ]||[ -d "${serveridentitydir}/user" ]||[ -n "$(find "${serveridentitydir}" -type f -name "proceduralmap*.sav")" ]||[ -n "$(find "${serveridentitydir}" -type f -name "barren*.sav")" ]||[ -n "$(find "${serveridentitydir}" -type f -name "Log.*.txt")" ]||[ -n "$(find "${serveridentitydir}" -type f -name "player.deaths.*.db")" ]||[ -n "$(find "${serveridentitydir}" -type f -name "player.blueprints.*.db")" ]||[ -n "$(find "${serveridentitydir}" -type f -name "sv.files.*.db")" ]; then
 		fn_print_warning_nl "Any user, storage, log and map data from ${serveridentitydir} will be erased."
-		if ! fn_prompt_yn "Continue?" Y; then
-				core_exit.sh
+
+		if [ "${autowipe}" != "1" ]; then
+			if ! fn_prompt_yn "Continue?" Y; then
+					core_exit.sh
+			fi
 		fi
 		fn_script_log_info "User selects to erase any user, storage, log and map data from ${serveridentitydir}"
 		fn_sleep_time

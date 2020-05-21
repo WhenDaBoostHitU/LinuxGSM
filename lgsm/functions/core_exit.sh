@@ -20,6 +20,16 @@ if [ "$(whoami)" == "root" ]; then
 	find "${logdir}"/ -group root -prune -exec rm -rf {} + > /dev/null 2>&1
 fi
 
+if [ "${autowipe}" ]; then
+	unset autowipe
+fi
+if [ "${bpwipe}" ]; then
+	unset bpwipe
+fi
+if [ "${forcewipeday}" ]; then
+	unset forcewipeday
+fi
+
 if [ "${exitbypass}" ]; then
 	unset exitbypass
 elif [ "${exitcode}" ]&&[ "${exitcode}" != "0" ]; then
