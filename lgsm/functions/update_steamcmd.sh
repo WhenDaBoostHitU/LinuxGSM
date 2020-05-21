@@ -4,9 +4,7 @@
 # Website: https://linuxgsm.com
 # Description: Handles updating using SteamCMD.
 
-local modulename="UPDATE"
-local commandaction="Update"
-local function_selfname="$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
+functionselfname="$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
 
 fn_update_steamcmd_dl(){
 	info_config.sh
@@ -213,7 +211,6 @@ fn_update_steamcmd_compare(){
 			command_stop.sh
 			exitbypass=1
 			fn_update_steamcmd_dl
-			date +%s > "${lockdir}/lastupdate.lock"
 			exitbypass=1
 			command_mods_update.sh
 			if [ ${forcewipeday} == "1" ]; then
@@ -222,7 +219,7 @@ fn_update_steamcmd_compare(){
 			exitbypass=1
 			command_start.sh
 		fi
-
+		date +%s > "${lockdir}/lastupdate.lock"
 		alert="update"
 		alert.sh
 	else
@@ -315,7 +312,7 @@ fn_stop_warning(){
 
 # The location where the builds are checked and downloaded.
 remotelocation="SteamCMD"
-check.sh
+check_steamcmd.sh
 
 if [ "${forceupdate}" == "1" ]; then
 	# forceupdate bypasses update checks.
