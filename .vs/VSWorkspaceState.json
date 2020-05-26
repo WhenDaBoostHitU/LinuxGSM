@@ -1,7 +1,9 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\lgsm",
+    "\\lgsm\\config-default"
   ],
-  "SelectedNode": "\\lgsm",
+  "SelectedNode": "\\linuxgsm.sh",
   "PreviewInSolutionExplorer": false
 }
