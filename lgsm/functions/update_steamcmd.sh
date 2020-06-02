@@ -132,8 +132,11 @@ fn_check_wipe_date(){
 			mapwipedatetime=$(date +%s -d "${mapwipedate} ${timetowipe} ${timezone}")
 
 			# Wipe if it's a forced wipe day or actual wipe day
-			if [ "${currentdatetime}" -ge "${mapwipedatetime}" ] || [ "${forcewipeday}" == "1" ]; then
-				autowipe=1
+			if [ "${currentdatetime}" -ge "${mapwipedatetime}" ] || ([ "${forcewipeday}" == "1" ] && [ "${forcewipeupdated}" == "1"]); then
+					autowipe=1
+					if [ "${forcewipeupdated}" ]; then
+						unset forcewipeupdated
+					fi
 			fi
 		fi
 
@@ -200,6 +203,7 @@ fn_update_steamcmd_compare(){
 		if [ "${status}" == "0" ]; then
 			fn_update_steamcmd_dl
 			if [ "${forcewipeday}" == "1" ]; then
+				forcewipeupdated=1
 				fn_check_wipe_date
 			fi
 			exitbypass=1
@@ -214,6 +218,7 @@ fn_update_steamcmd_compare(){
 			exitbypass=1
 			command_mods_update.sh
 			if [ ${forcewipeday} == "1" ]; then
+				forcewipeupdated=1
 				fn_check_wipe_date
 			fi			
 			exitbypass=1
@@ -330,6 +335,7 @@ if [ "${forceupdate}" == "1" ]; then
 		date +%s > "${lockdir}/lastupdate.lock"
 	fi
 else
+	fn_check_force_wipe_date
 	fn_check_wipe_date	
 	fn_print_dots "Checking for update"
 	fn_print_dots "Checking for update: ${remotelocation}"

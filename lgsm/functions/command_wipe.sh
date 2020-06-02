@@ -42,6 +42,14 @@ fn_wipe_exit_code(){
 	fi
 }
 
+# Check if this is the last seed in the array
+fn_check_seed_count(){
+	if [ "${#seeds[@]}" -ge "$((newseedindex+1))" ]; then
+		alert="endofseeds"
+		alert.sh
+	fi
+}
+
 # Removes files to wipe server.
 fn_wipe_server_remove_files(){
 	# Rust Wipe.
@@ -56,6 +64,16 @@ fn_wipe_server_remove_files(){
 			# Remove map last map wipe lock
 			if [ -f "${lockdir}/${selfname}-lastmapwipe.lock" ]; then
 				rm -f "${lockdir:?}/${selfname}-lastmapwipe.lock"
+			fi
+			# Increment the seed index
+			if [ -f "${lockdir}/${selfname}-seedindex.lock" ]; then
+				currentaction="Incrementing seed index"
+				currentseedindex=$(cat "${lockdir}/${selfname}-seedindex.lock")
+				newseedindex=$((currentseedindex + 1))
+				echo "${newseedindex}" > "${lockdir}/${selfname}-seedindex.lock"
+				fn_check_seed_count
+			else
+				fn_print_warning_nl "ERROR Incrementing Seed Index"
 			fi
 			fn_wipe_exit_code
 			fn_sleep_time

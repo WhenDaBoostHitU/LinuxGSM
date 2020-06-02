@@ -9,6 +9,27 @@ commandname="START"
 commandaction="Starting"
 functionselfname="$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
 
+fn_verify_seed(){
+	if [ ! "${seeds[seedindex]}" ]; then
+		fn_print_fail_nl "ERROR: Invalid seed index. Might need to add more seeds. Current Seed # = $((seedindex+1))"
+		fn_script_log_fatal "ERROR: Invalid seed index. Might need to add more seeds. Current Seed # = $((seedindex+1))"
+		core_exit.sh
+	fi
+}
+
+fn_get_current_seed(){
+	# Create the lock file if it does not exist and start the seed index at 0
+	if [ ! -f "${lockdir}/${selfname}-seedindex.lock" ]; then
+		echo "0" > "${lockdir}/${selfname}-seedindex.lock"
+	fi
+	# Get the seed
+	if [ -f "${lockdir}/${selfname}-seedindex.lock" ]; then
+		seedindex=$(cat "${lockdir}/${selfname}-seedindex.lock")
+		seed="${seeds[$seedindex]}"
+		fn_verify_seed
+	fi
+}
+
 fn_start_teamspeak3(){
 	if [ ! -f "${servercfgfullpath}" ]; then
 		fn_print_warn_nl "${servercfgfullpath} is missing"
@@ -72,9 +93,12 @@ fn_start_tmux(){
 	# Create last start lock file
 	date +%s > "${lockdir}/${selfname}-laststart.lock"
 
+	# Create last BP wipe lock file
 	if [ ! -f "${lockdir}/${selfname}-lastbpwipe.lock" ]; then
 		date > "${lockdir}/${selfname}-lastbpwipe.lock"
 	fi
+
+	# Create last map wipe lock file
 	if [ ! -f "${lockdir}/${selfname}-lastmapwipe.lock" ]; then
 		date > "${lockdir}/${selfname}-lastmapwipe.lock"
 	fi

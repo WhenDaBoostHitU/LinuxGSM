@@ -78,6 +78,15 @@ fn_alert_config(){
 	alertbody="${selfname} has received a new _default.cfg. Check file for changes."
 }
 
+fn_alert_seeds(){
+	fn_script_log_info "Sending alert: LAST SEED in list"
+	alertsubject="Alert - ${selfname} - LAST SEED in list"
+	alertemoji="🎮"
+	alertsound="1"
+	alerturl="not enabled"
+	alertbody="${selfname} has reached it's LAST SEED in list. Add more seeds."
+}
+
 if [ "${alert}" == "permissions" ]; then
 	fn_alert_permissions
 elif [ "${alert}" == "restart" ]; then
@@ -90,6 +99,8 @@ elif [ "${alert}" == "update" ]; then
 	fn_alert_update
 elif [ "${alert}" == "config" ]; then
 	fn_alert_config
+elif [ "${alert}" == "endofseeds" ]; then
+	fn_alert_seeds
 fi
 
 # Generate alert log.
