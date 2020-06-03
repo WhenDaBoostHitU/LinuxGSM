@@ -132,7 +132,7 @@ fn_check_wipe_date(){
 			mapwipedatetime=$(date +%s -d "${mapwipedate} ${timetowipe} ${timezone}")
 
 			# Wipe if it's a forced wipe day or actual wipe day
-			if [ "${currentdatetime}" -ge "${mapwipedatetime}" ] || ([ "${forcewipeday}" == "1" ] && [ "${forcewipeupdated}" == "1"]); then
+			if [ "${currentdatetime}" -ge "${mapwipedatetime}" ] && [ "${forcewipeday}" != "1" ]  ||  ([ "${forcewipeday}" == "1" ] && [ "${forcewipeupdated}" == "1" ]); then
 					autowipe=1
 					if [ "${forcewipeupdated}" ]; then
 						unset forcewipeupdated
