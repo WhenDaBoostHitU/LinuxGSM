@@ -44,7 +44,7 @@ fn_wipe_exit_code(){
 
 # Check if this is the last seed in the array
 fn_check_seed_count(){
-	if [ "${#seeds[@]}" -ge "$((newseedindex+1))" ]; then
+	if [ "${#seeds[@]}" -le "$((newseedindex+1))" ]; then
 		alert="endofseeds"
 		alert.sh
 	fi
@@ -71,6 +71,7 @@ fn_wipe_server_remove_files(){
 				currentseedindex=$(cat "${lockdir}/${selfname}-seedindex.lock")
 				newseedindex=$((currentseedindex + 1))
 				echo "${newseedindex}" > "${lockdir}/${selfname}-seedindex.lock"
+				fn_script_log "${currentaction}"
 				fn_check_seed_count
 			else
 				fn_print_warning_nl "ERROR Incrementing Seed Index"

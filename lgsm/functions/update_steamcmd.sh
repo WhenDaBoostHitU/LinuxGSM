@@ -217,7 +217,7 @@ fn_update_steamcmd_compare(){
 			fn_update_steamcmd_dl
 			exitbypass=1
 			command_mods_update.sh
-			if [ ${forcewipeday} == "1" ]; then
+			if [ "${forcewipeday}" == "1" ]; then
 				forcewipeupdated=1
 				fn_check_wipe_date
 			fi			
