@@ -8,6 +8,7 @@
 commandname="START"
 commandaction="Starting"
 functionselfname="$(basename "$(readlink -f "${BASH_SOURCE[0]}")")"
+fn_firstcommand_set
 
 fn_verify_seed(){
 	if [ ! "${seeds[seedindex]}" ]; then
@@ -219,8 +220,7 @@ if [ "${updateonstart}" == "yes" ]||[ "${updateonstart}" == "1" ]||[ "${updateon
 	exitbypass=1
 	unset updateonstart
 	command_update.sh
-	commandname="START"
-	commandaction="Starting"
+	fn_firstcommand_reset
 fi
 
 fn_print_dots "${servername}"
