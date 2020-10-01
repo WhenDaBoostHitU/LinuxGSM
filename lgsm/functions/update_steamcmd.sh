@@ -179,11 +179,12 @@ fn_update_steamcmd_compare(){
 		fn_check_force_wipe_date
 		# If server stopped.
 		if [ "${status}" == "0" ]; then
-			fn_update_steamcmd_dl
 			if [ "${forcewipeday}" == "1" ]; then
 				forcewipeupdated=1
 				fn_check_wipe_date
 			fi
+			exitbypass=1
+			fn_dl_steamcmd
 			exitbypass=1
 			command_mods_update.sh
 		# If server started.
