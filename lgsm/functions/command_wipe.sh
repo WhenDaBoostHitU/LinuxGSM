@@ -49,6 +49,12 @@ fn_check_seed_count(){
 		alert="endofseeds"
 		alert.sh
 	fi
+
+	if [ "${#seeds[@]}" -ge "$((newseedindex+1))" && seedrollover]; then
+		newseedindex=0
+		fn_script_log_info "End of seeds. Rolling over to first seed."
+	fi
+
 }
 
 # Removes files to wipe server.
@@ -67,12 +73,13 @@ fn_wipe_server_files(){
 		fi
 		# Increment the seed index
 		if [ -f "${lockdir}/${selfname}-seedindex.lock" ]; then
+			
 			currentaction="Incrementing seed index"
 			currentseedindex=$(cat "${lockdir}/${selfname}-seedindex.lock")
 			newseedindex=$((currentseedindex + 1))
+			fn_check_seed_count
 			echo "${newseedindex}" > "${lockdir}/${selfname}-seedindex.lock"
 			fn_script_log "${currentaction}"
-			fn_check_seed_count
 		else
 			fn_print_warning_nl "ERROR Incrementing Seed Index"
 		fi
