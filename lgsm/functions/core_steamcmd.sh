@@ -160,6 +160,12 @@ fn_update_steamcmd_localbuild(){
 	fi
 }
 
+fn_restore_server_state(){
+	if [ "${serverstatusbeforewipe}" == "1" ]; then
+		command_start.sh
+	fi
+}
+
 fn_update_steamcmd_remotebuild(){
 	# Gets remote build info.
 	if [ -d "${steamcmddir}" ]; then
@@ -180,6 +186,7 @@ fn_update_steamcmd_remotebuild(){
 		if [ -z "${remotebuild}" ]||[ "${remotebuild}" == "null" ]; then
 			fn_print_fail "Checking remote build: ${remotelocation}"
 			fn_script_log_fatal "Checking remote build"
+			fn_restore_server_state
 			core_exit.sh
 		else
 			fn_print_ok "Checking remote build: ${remotelocation}"
@@ -190,7 +197,76 @@ fn_update_steamcmd_remotebuild(){
 		if [ -z "${remotebuild}" ]||[ "${remotebuild}" == "null" ]; then
 			fn_print_failure "Unable to get remote build"
 			fn_script_log_fatal "Unable to get remote build"
+			fn_restore_server_state
 			core_exit.sh
+		fi
+	fi
+}
+
+fn_check_force_wipe_date(){
+
+	currentweekday=$(LC_TIME=C date +%A)
+	dayofmonth=$(date +%d)
+
+	if [ "${currentweekday}" = "Thursday" ] && [ "${dayofmonth}" -lt "8" ]; then
+		forcewipeday=1
+	fi
+}
+
+fn_check_wipe_date(){
+	if [ -n "$(find "${serveridentitydir}" -type f -name "proceduralmap*.map")" ]; then
+		# currentdate=$(date +%m%d%Y)
+		# mapcreatedate=$(date -r "$(find "${serveridentitydir}" -type f -name "proceduralmap*.map")")
+		# mapwipedate=$(date +%m%d%Y -d "${mapcreatedate} + ${wipedays} day")
+		# mapcreatedate=$(date +%m%d%Y -d "${mapcreatedate}")
+
+		currentdatetime=$(date +%s)
+		timezone=$(date +%Z)
+
+		if [ -f "${lockdir}/${selfname}-lastmapwipe.lock" ]; then
+			lastmapwipe=$(cat "${lockdir}/${selfname}-lastmapwipe.lock")
+			mapwipedate=$(date +%F -d "${lastmapwipe} + ${wipedays} day")
+			mapwipedatetime=$(date +%s -d "${mapwipedate} ${timetowipe} ${timezone}")
+
+			# Wipe if it's a forced wipe day or actual wipe day
+			if [ "${currentdatetime}" -ge "${mapwipedatetime}" ] && [ "${forcewipeday}" != "1" ]  ||  ([ "${forcewipeday}" == "1" ] && [ "${forcewipeupdated}" == "1" ]); then
+					autowipe=1
+					if [ "${forcewipeupdated}" ]; then
+						unset forcewipeupdated
+					fi
+			fi
+		fi
+
+		# Only wipe BP's if it's wipe day
+		if [ -f "${lockdir}/${selfname}-lastbpwipe.lock" ] && [ "${autowipe}" == "1" ]; then
+			lastbpwipe=$(cat "${lockdir}/${selfname}-lastbpwipe.lock")
+			bpwipedate=$(date +%F -d "${lastbpwipe} + ${bpwipedays} day")
+			bpwipedatetime=$(date +%s -d "${bpwipedate} ${timetowipe} ${timezone}")
+
+			if [ "${currentdatetime}" -ge "${bpwipedatetime}" ]; then
+				bpwipe=1
+			fi
+		fi
+
+		if [ "${autowipe}" == "1" ]; then
+			check_status.sh
+			serverstatusbeforewipe=${status}
+			fn_autowipe_map
+		fi
+	fi
+}
+
+fn_autowipe_map(){
+	if [ "${autowipe}" == "1" ]; then
+		exitbypass=1
+		command_backup.sh
+		if [ "${bpwipe}" == "1" ]; then
+			wipeall=1
+			exitbypass=1
+			command_wipe.sh
+		else
+			exitbypass=1
+			command_wipe.sh
 		fi
 	fi
 }
@@ -225,9 +301,21 @@ fn_update_steamcmd_compare(){
 		if [ "${commandname}" == "UPDATE" ]; then
 			unset updateonstart
 			check_status.sh
+
+			# Check if it's force wipe day
+			fn_check_force_wipe_date
+
 			# If server stopped.
 			if [ "${status}" == "0" ]; then
-				fn_dl_steamcmd
+			if [ "${forcewipeday}" == "1" ]; then
+				forcewipeupdated=1
+				fn_check_wipe_date
+			fi
+			exitbypass=1
+			fn_dl_steamcmd
+			exitbypass=1
+			command_mods_update.sh
+
 			# If server started.
 			else
 				fn_print_restart_warning
@@ -236,6 +324,13 @@ fn_update_steamcmd_compare(){
 				fn_firstcommand_reset
 				exitbypass=1
 				fn_dl_steamcmd
+				exitbypass=1
+				command_mods_update.sh
+				exitbypass=1
+				if [ "${forcewipeday}" == "1" ]; then
+					forcewipeupdated=1
+					fn_check_wipe_date
+				fi			
 				exitbypass=1
 				command_start.sh
 				fn_firstcommand_reset

@@ -2,9 +2,8 @@
   "ExpandedNodes": [
     "",
     "\\lgsm",
-    "\\lgsm\\config-default",
-    "\\lgsm\\functions"
+    "\\lgsm\\config-default"
   ],
-  "SelectedNode": "\\lgsm\\functions\\update_steamcmd.sh",
+  "SelectedNode": "\\lgsm\\functions",
   "PreviewInSolutionExplorer": false
 }
